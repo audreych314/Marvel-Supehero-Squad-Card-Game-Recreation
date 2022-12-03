@@ -1,5 +1,6 @@
 from cmu_112_graphics import*
 from Card_Catalog import*
+import random
 def appStarted(app):
     app.loadScreen = True
     app.boardColor = "blue"
@@ -24,6 +25,7 @@ def appStarted(app):
     app.personalDeck = dict()
     app.preLoad = {0:3, 1:2, 3:2, 5:2, 6:2, 7:2, 8:3, 10:3, 12:3, 30:3,
                     31:3, 32:3, 33:3, 34:2, 35:2, 36:2}
+    # app.preLoad = {0:1, 1:2, 3:2, 5:2}
     app.preLoadDeck = dict()
     for key in app.preLoad:
         app.preLoadDeck[app.deckCatalog[key]] = app.preLoad[key]
@@ -31,6 +33,8 @@ def appStarted(app):
     app.numRows, app.numCols = 8, 5
     app.gridWidth = (app.width/2 + 10) - 2*app.margin2
     app.gridHeight = app.height - 2*app.margin2
+    #GAME
+    app.level = 1
     
 def drawBoard(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = app.boardColor)
@@ -121,6 +125,7 @@ def mousePressed(app, event):
         if (14*app.okayX - 80) <= event.x <=  app.width:
             if 2*(app.height//3) <= event.y <= 18*app.okayY:
                 app.myDeck = True
+                []
                 app.deckMenu = False
     #back button 
     if  11*(app.height/12) <= event.y <= app.height and\
@@ -143,6 +148,7 @@ def mousePressed(app, event):
         elif app.height - app.margin*9 <= event.y <= app.height - app.margin*7:
             app.startGame = True
             app.startMenu = False
+            startGame(app)
         return
 
 def mouseMoved(app, event):
@@ -302,6 +308,119 @@ def drawGrid(app, canvas):
     for r in range(app.numRows):
         for c in range(app.numCols):
             drawCell(app , canvas, r, c)
+
+#START GAME
+def shuffle(deck):
+    answer = []
+    tempDeck = copy.copy(deck)
+    while len(answer) < len(deck):
+        answer += [tempDeck.pop(random.randint(0, len(tempDeck)-1))]
+    return answer 
+
+#reference: playPig() from Audrey Chen's hw2 of 15112
+def startGame(app):
+    print("THE GAME IS STARTING")
+    deck = []
+    for key in app.personalDeck:
+        for i in range(app.personalDeck[key]):
+            deck += [key]
+    deck1 = shuffle(deck)
+    deck2 = shuffle(deck)
+    hand1, hand2 = [], []
+    for i in range(4):
+        num = random.randint(1,len(deck1))
+        a = deck1.pop(num - 1)
+        hand1 += [a]
+    for i in range(4):
+        num = random.randint(1,len(deck2))
+        a = deck2.pop(num - 1)
+        hand2 += [a]
+    currentPlayer = 0
+    while len(deck1) > 0 and len(deck2) > 0:
+        #update decks and hands too
+        app.level += random.randint(0, 1)
+        result = playTurn(app, currentPlayer, deck1, deck2, hand1, hand2)
+        if result != None:
+            damage, deck1, deck2, hand1, hand2 = result
+            print('Wow! You did ' + f'{damage} points of damage!')
+        else:
+            print("Passed!")
+        print("Next player's turn")
+        print("------------------")   
+        currentPlayer = (currentPlayer + 1) % 2
+    print(f'Player {(currentPlayer+1)%2 + 1} is the winner! Skill issue')
+
+def playTurn(app, player, deck1, deck2, hand1, hand2):
+    deck, hand = deck1, hand1
+    oppDeck, oppHand = deck2, hand2
+    if bool(player):
+        deck, hand = deck2, hand2
+        oppDeck, oppHand = deck1, hand1
+    if len(hand) < 8:
+        drawCard = deck.pop()
+        hand += [drawCard]
+    print(f"PLAYER {player + 1}:\n",hand)
+    print("Current Level:" + f'{app.level}')
+    print("Your deck:" + f'{len(deck)}' + '\nOpponent\'s deck:' +\
+         f'{len(oppDeck)}')
+    while True:
+        action = input("Press P to pass, press number to play a card:")
+        if action.isdigit() and int(action) <= len(hand):
+            num = int(action)- 1
+            card = copy.copy(hand[num])
+            if card.level <= app.level:
+                print("Playing ... " + f'{card.getName()}')
+                damage,oppDeck, oppHand =\
+                     calcDamage(player, card, oppDeck, oppHand)
+                hand.pop(num)
+                return (damage, deck, oppDeck, hand, oppHand)
+            else:
+                print("Illegal Move! Try again")
+        elif action.isalpha() and action.lower() == "p":
+            return None
+        else:
+            print("Illegal move! Try again")
+
+def calcDamage(player, card, deck, hand):
+    opponent = (player + 1) % 2
+    print(f'PLAYER {opponent + 1} hand:\n',hand)
+    while True:
+        press = input(f'Player {opponent + 1}, press P to pass,' +\
+        'or press a number to block:')
+        damage = 0
+        if press.isdigit() and int(press) <= len(hand):
+            block = hand[int(press)-1].blocks
+            if block in card.type:
+                card.type.remove(block)
+                hand.pop(int(press)-1)
+            else:
+                print("Illegal move")
+                continue
+            if card.type == []:
+                return (damage, deck, hand)
+            else:
+                print("Discard another card")
+                continue
+        elif press.isalpha() and press.lower() == "p":
+            damage = 0
+            for i in range(card.attack):
+                if len(deck) == 0 and len(hand) == 0:
+                    break
+                elif len(deck) == 0:
+                    discard = hand.pop()
+                else:
+                    discard = deck.pop()
+                damage += 1
+                print("Discarding... " + f'{discard.name}')
+                block = discard.blocks
+                if block in card.type:
+                    card.type.remove(block)
+                if card.type == []:
+                    print("Lucky block!")
+                    break
+            return (damage, deck, hand)
+        else:
+            print("Illegal move!")
 
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
