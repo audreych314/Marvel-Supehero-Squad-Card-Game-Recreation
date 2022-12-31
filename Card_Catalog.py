@@ -1,7 +1,7 @@
 from Card_Class import *
-#self, name, level, attack, type, , blocks, img
 #all card images from: https://heroup.fandom.com/wiki
 def loadClasses():
+#returns a list of Card objects
     #special
     card1 = Card("Ace of Hearts", 6, 5, ["Energy"], "Speed", 
                     'Ace_of_hearts.JPG.webp')
@@ -53,6 +53,7 @@ def loadClasses():
                     "Double_Slam_Sandwich.webp")
     card22 = Card("Drop the Hulk Bomb", 9, 6, ["Strength", "Speed"],
                     "Animal", "Drop_the_Hulk_Bomb.webp")
+    #special
     card23 = Card("Electrical Storm", 4, 2, ["Elemental"], "Animal",
                     "Electrical_Storm.webp")
     card24 = Card("Explosive Leap", 4, 6, ["Speed"], "Tech", 
@@ -111,6 +112,7 @@ def loadClasses():
     card45 = Card("Metldown", 3, 2, ["Elemental"], "Strength", "Meltdown.webp")
     card46 = Card("Moonlit Guardian", 6, 8, ["Animal"], "Speed", 
                     "Moonlit_Guardian.webp")
+    #special
     card47 = Card("Mutant Healing Ability", 4, 2, ["Energy"], "Strength",
                     "Mutant_Healing.webp")
     #special
@@ -129,6 +131,7 @@ def loadClasses():
                     "Prey_on_Weak.webp")
     card53 = Card("Psychi Cupcake Bomb", 6, 8, ["Energy"], "Strength",
                     "Psychic_Cupcake_Bomb.webp")
+    #special
     card54 = Card("Pull into Mists", 1, 2, ["Tech"], "Speed", 
                     "Pull_into_Mists.webp")
     card55 = Card("Pure Justice", 12, 10, ["Elemental", "Speed"], "Energy",
@@ -193,13 +196,11 @@ def loadClasses():
     #special
     card80 = Card("You Gotta Be Kidding Me!", 3, 3, ["Animal"], "Speed", 
                     "You_Gotta_Be.webp")
-    return [card1, card2, card3, card4, card5, card6, card7, card8, card9,
-            card10, card11, card12, card13, card14, card15, card16, card17,
-            card18, card19, card20, card21, card22, card23, card24, card25,
-            card26, card27, card28, card29, card30, card31, card32, card33, 
-            card34, card35, card36, card37, card38, card38,card39, card40, 
-            card41, card42, card43, card44, card45, card46, card47, card48,
-            card49, card50, card51, card52, card53, card54, card55, card56,
-            card57, card58, card60, card61, card62, card63, card64, card65,
-            card66, card67, card68, card69, card70, card71, card72, card73, 
-            card74, card75, card76, card77, card78, card79, card80] 
+    return [card3, card5, card6, card7,
+            card10, card12, card13, card16, 
+            card17, card19, card22, card24, 
+            card25, card27, card37, card38, 
+            card38, card40, card41, card43, 
+            card46, card53, card55, 
+            card56, card60, card61, card62, 
+            card67, card70, card73, card74] 
