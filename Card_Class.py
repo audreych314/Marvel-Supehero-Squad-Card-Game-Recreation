@@ -21,15 +21,8 @@ class Card():
         return self.blocks
     def getImage(self):
         return self.img
-    def __str__(self):
-        return f'{self.name}'
+    def __repr__(self):
+        return (f'{self.name}, Level: {self.level}, ' +\
+            f'Attack: {self.attack}, ' +\
+            f'Type: {self.type}, Blocks: {self.blocks}\n')
 
-class specialCard(Card):
-    def __init__(self, level, type, blocks, special):
-        super().__init__.level
-        super().__init__.type
-        super().__init__.blocks
-        self.special = special
-    
-    def getSpecial(self):
-        return f'{self.special}'
