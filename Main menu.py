@@ -9,7 +9,7 @@ def appStarted(app):
     app.color = "snow"
     app.margin = 50
     #Source for shso.png: https://www.facebook.com/SuperHeroSquadOnline/
-    app.logo = app.loadImage('shso.png')
+    app.logo = app.loadImage('images/shso.png')
     app.flipLogo = app.logo.transpose(Image.FLIP_LEFT_RIGHT)
 
     #Variables for load screen
@@ -20,10 +20,11 @@ def appStarted(app):
     
     #Variables for instructions screen
     app.instructions = False
-    instruct = ["instruct1.png", "instruct2.png", "instruct3.png", 
-                "instruct4.png",
-                "instruct5.png", "instruct6.png", "instruct7.png", 
-                "instruct8.png", "instruct9.png", "instruct10.png"]
+    instruct = ["images/instruct1.png", "images/instruct2.png", 
+                "images/instruct3.png", "images/instruct4.png",
+                "images/instruct5.png", "images/instruct6.png", 
+                "images/instruct7.png", "images/instruct8.png", 
+                "images/instruct9.png", "images/instruct10.png"]
     app.instructPages = []
     for page in instruct:
         image = app.loadImage(page)
