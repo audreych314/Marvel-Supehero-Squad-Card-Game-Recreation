@@ -2,13 +2,13 @@ from cmu_112_graphics import*
 from Card_Catalog import*
 import random, time
 
-#creates variables to be used for every function that has app as an input
+#Creates variables to be used for every function that has app as an input
 def appStarted(app):
     #General variables
     app.boardColor = "RoyalBlue1"
     app.color = "snow"
     app.margin = 50
-    #source for shso.png: https://www.facebook.com/SuperHeroSquadOnline/
+    #Source for shso.png: https://www.facebook.com/SuperHeroSquadOnline/
     app.logo = app.loadImage('shso.png')
     app.flipLogo = app.logo.transpose(Image.FLIP_LEFT_RIGHT)
 
@@ -23,12 +23,11 @@ def appStarted(app):
     instruct = ["instruct1.png", "instruct2.png", "instruct3.png", 
                 "instruct4.png",
                 "instruct5.png", "instruct6.png", "instruct7.png", 
-                "instruct8.png", "instruct9.png", "instruct10.png",
-                "instruct12.png"]
+                "instruct8.png", "instruct9.png", "instruct10.png"]
     app.instructPages = []
     for page in instruct:
         image = app.loadImage(page)
-        app.instructPages += [app.scaleImage(image, 1/3)]
+        app.instructPages += [app.scaleImage(image, 1/5)]
     app.num = 0
 
     #Variables for deck screen
@@ -74,11 +73,11 @@ def appStarted(app):
     app.luckyBlock = False
     app.blocked = False
 
-#fills the background of the screen with the board color
+#Fills the background of the screen with the board color
 def drawBoard(app, canvas):
     canvas.create_rectangle(0, 0, app.width, app.height, fill = app.boardColor)
 
-#creates the logo image, the size is determined by the current screen
+#Creates the logo image, the size is determined by the current screen
 def drawLogo(app, canvas):
     if app.startMenu:
         logo1 = app.scaleImage(app.logo, 2/5)
@@ -90,13 +89,13 @@ def drawLogo(app, canvas):
                         image = ImageTk.PhotoImage(logo2))
     return
 
-#provides instruction for the user on how to go to the main menu
+#Provides instruction for the user on how to go to the main menu
 def startText(app, canvas):
     canvas.create_text(app.width//2, 2*(app.height//3), 
                         text = "Press the spacebar to start!", fill = "white",
                         font = "Cambria 25 bold")
 
-#creates the buttons for the main menu
+#Creates the buttons for the main menu
 def drawMenu(app, canvas):
     #DECK BUTTON
     canvas.create_rectangle(app.width//2 - 90, app.height - app.margin,
@@ -157,14 +156,14 @@ def keyPressed(app, event):
                 app.num -= 1
                 return
         elif event.key == "Right":
-            if app.num < 10:
+            if app.num < 9:
                 app.num += 1
                 return
         return
 
 #Mouse click commands to interact with certain screens
 def mousePressed(app, event):
-    #button actions for deck menu
+    #Button actions for deck menu
     if app.deckMenu:
         if 9*app.height/20 <= event.y <= 11*app.height/20:
             #add button action
@@ -184,20 +183,37 @@ def mousePressed(app, event):
                 app.myDeck = True
                 app.deckMenu = False
                 updateDeck(app)
-    #back button actions
-    if app.deckMenu or app.myDeck or app.instructions:
-        if 11*(app.height/12) <= event.y <= app.height and\
-            12*app.width/15 <= event.x <= app.width:
-                if app.deckMenu:
-                    app.startMenu = True
-                    app.deckMenu = False
-                elif app.myDeck:
-                    app.deckMenu = True
-                    app.myDeck = False
-                elif app.insturctions:
-                    app.deckMenu = True
-                    app.instructions = False
-    #button actions for start menu
+    #Back button actions
+    if 11*(app.height/12) <= event.y <= app.height and\
+        12*app.width/15 <= event.x <= app.width:
+            if app.deckMenu:
+                app.startMenu = True
+                app.deckMenu = False
+            elif app.myDeck:
+                app.deckMenu = True
+                app.myDeck = False
+            elif app.instructions:
+                app.startMenu = True
+                app.instructions = False
+            elif app.optionsMenu:
+                app.startMenu = True
+                app.optionsMenu = False
+            elif app.startGame:
+                app.startMenu = True
+                app.startGame = False
+                app.yourDiscard, app.oppDiscard = [], []
+                app.card = app.deckCatalog[app.currentCard]
+                app.cardImage = app.loadImage(app.card.getImage())
+                app.level = 1
+                app.endTurn = False
+                app.aiEasy = False
+                app.aiCard = []
+                app.aiTurn = False
+                app.luckyBlock = False
+                app.blocked = False
+                app.passed = False
+                app.currentPlayer = 0
+    #Button actions for start menu
     elif app.startMenu:
         if app.width//2 - 90 <= event.x <= app.width//2 + 90:
             #Deck button action
@@ -215,129 +231,91 @@ def mousePressed(app, event):
                 app.optionsMenu = True
                 app.startMenu = False
                 updateDeck(app)
-    #button actions for options menu
+    #Button actions for options menu
     elif app.optionsMenu:
-        if 11*(app.height/12) <= event.y <= app.height and\
-           12*app.width/15 <= event.x <= app.width:
-                app.startMenu = True
-                app.optionsMenu = False
-                return
         width = (app.height - app.margin*4)/3
-        if app.width//2 - 180 <= event.x <= app.width//2 + 180:
-            if len(app.deck) != 40:
-                return
-            #enter TWO-Player mode
-            elif (app.height - (app.margin*3 + width*2)) >= event.y >=\
-                (app.height - (app.margin*3 + width*3)):
-                app.startGame = True
-                app.optionsMenu = False
-                app.cardImage, app.card = [], []
-                startGame(app)
-            #enter AI-Easy mode
-            elif app.height - (app.margin*2 + width) >= event.y >=\
-                app.height - (app.margin*2 + width*2):
-                app.startGame = True
-                app.optionsMenu = False
-                app.cardImage, app.card = [], []
-                app.aiEasy = True
-                startGame(app)
-            #enter AI-Hard mode
-            elif app.height - app.margin >= event.y >=\
-                app.height - (app.margin + width):
-                print("Coming Soon")
-    elif app.startGame:  
-        #Quit Game
-        if 12*app.width/15 <= event.x <= app.width and\
-             11*app.height/12 <= event.y <= app.height:
-            app.startGame = False
-            app.startMenu = True
-            app.yourDiscard, app.oppDiscard = [], []
-            app.card = app.deckCatalog[app.currentCard]
-            app.cardImage = app.loadImage(app.card.getImage())
-            app.level = 1
-            app.endTurn = False
-            app.aiEasy = False
-            app.aiCard = []
-            app.aiTurn = False
-            app.luckyBlock = False
-            app.passed = False
-            app.currentPlayer = 0
+        if len(app.deck) != 40:
             return
-        #at end of turn
-        elif app.endTurn and event.x != 0 and event.y != 0:
-            time.sleep(0.5)
+        #enter AI-Easy mode
+        elif app.height - (app.margin*2 + width) >= event.y >=\
+            app.height - (app.margin*2 + width*2):
+            app.startGame = True
+            app.optionsMenu = False
+            app.cardImage, app.card = [], []
+            app.aiEasy = True
+            startGame(app)
+    #Actions for game
+    elif app.startGame:
+        cardHeight = 120
+        image = app.deckImages[0]
+        imageWidth, imageHeight = image.size
+        scaleFactor = cardHeight/imageHeight
+        cardWidth = imageWidth * scaleFactor
+        hand = app.hand1
+        #User clicks to continue, resets to start of turn
+        if app.endTurn:
             app.luckyBlock = False
             app.blocked = False
             app.endTurn = False
             app.passed = False
-            #Two Player
-            if app.aiEasy == False:
-                app.currentPlayer = (app.currentPlayer + 1) % 2
-                (app.yourDiscard, app.oppDiscard) =\
-                     (app.oppDiscard, app.yourDiscard)
+            #Previously your turn
+            if app.aiTurn == False:
+                app.aiTurn = True
+                startTurn(app)
+                playAIGame(app)
+                return
+            #Previously AI's turn
+            else:
+                app.aiTurn = False
                 startTurn(app)
                 return
-            else:
-                #previously your turn
-                if app.aiTurn == False:
-                    app.aiTurn = True
-                    startTurn(app)
-                    playAIGame(app)
-                    return
-                else:
-                    app.aiTurn = False
-                    startTurn(app)
-                    return
-        elif app.startGame:
-            cardHeight = 120
-            image = app.deckImages[0]
-            imageWidth, imageHeight = image.size
-            scaleFactor = cardHeight/imageHeight
-            cardWidth = imageWidth * scaleFactor
-            hand = app.hand1
-            if app.currentPlayer == 1:
-                hand = app.hand2
-            #Passing
-            if 70 + cardWidth <= event.x <= 140 + cardWidth and\
+        #Passing turn or passing blocking
+        if 70 + cardWidth <= event.x <= 140 + cardWidth and\
                 app.height - 140 - cardHeight <= event.y\
                     <= app.height - 100 - cardHeight:
-                    if app.aiTurn:
-                        card = app.aiCard[0]
-                        copyCard = Card(card.name, card.level, card.attack, 
-                                            copy.copy(card.type), card.blocks,
-                                             card.img)
-                        damage = recurseDamage(app, copyCard, copyCard.attack, 
-                                                app.hand1, app.deck1)
-                        app.endTurn = True
-                        app.aiCard = []
-                        return
-                    app.passed = True
-                    app.endTurn = True
-            #Selecting a Card to play
-            elif app.height - 50 - cardHeight <= event.y <= app.height - 50:
-                for i in range(len(hand)):
-                    if 60 + 5*i + (i+1)*cardWidth <= event.x <=\
-                        60 + 5*i + (i+2)*cardWidth:
-                        app.card = hand[i][0]
-                        app.cardImage = hand[i][1]
-                        if app.aiTurn == False:
-                            playGame(app)
-                        elif app.aiCard != []:
-                            result = aiYourResponse(app)
-                            if result != None:
-                                discard = app.hand1.pop(i)
-                                app.yourDiscard = discard[1]
-                            if result != "Again" and result != None:
-                                app.blocked = True
-                                app.endTurn = True
-                                app.aiCard = []
-                            else:
-                                app.card, app.cardImage = [], []
+            #Passing blocking
+            if app.aiTurn:
+                card = app.aiCard[0]
+                copyCard = Card(card.name, card.level, card.attack, 
+                                copy.copy(card.type), card.blocks, card.img)
+                recurseDamage(app, copyCard, copyCard.attack, 
+                                        app.hand1, app.deck1)
+                app.endTurn = True
+                app.aiCard = []
+                return
+            #Passing user's turn
+            else:
+                app.passed = True
+                app.endTurn = True
+        #Selecting a Card to play
+        elif app.height - 50 - cardHeight <= event.y <= app.height - 50:
+            for i in range(len(hand)):
+                if 60 + 5*i + (i+1)*cardWidth <= event.x <=\
+                    60 + 5*i + (i+2)*cardWidth:
+                    app.card = hand[i][0]
+                    app.cardImage = hand[i][1]
+                    #Playing your card
+                    if app.aiTurn == False:
+                        playGame(app)
+                    #Using your card to block
+                    elif app.aiCard != []:
+                        result = aiYourResponse(app)
+                        if result != None:
+                            discard = app.hand1.pop(i)
+                            app.yourDiscard = discard[1]
+                        if result != "Again" and result != None:
+                            app.blocked = True
+                            app.endTurn = True
+                            app.aiCard = []
+                        else:
+                            app.card, app.cardImage = [], []
                         break
     return 
 
+#Mouse over commands for the user to interact with certain screens
 def mouseMoved(app, event):
     x, y = event.x, event.y
+    #Mouse over actions for my deck screen
     if app.myDeck:
         answer = reverseGetCellBounds(app, x, y)
         if answer == None:
@@ -348,6 +326,7 @@ def mouseMoved(app, event):
             if r == i//app.numCols and c == i%app.numCols:
                 app.currentCard = i
                 updateImage(app)
+    #Mouse over actions for the gameplay
     elif app.startGame:
         if len(app.hand1) == 0 or len(app.hand2) == 0:
             return
@@ -364,21 +343,22 @@ def mouseMoved(app, event):
                 if 60 + 5*i + (i+1)*cardWidth <= event.x <=\
                     60 + 5*i + (i+2)*cardWidth:
                     app.cardImage = hand[i][1]
+                    app.card = []
                     break
         else:
             app.cardImage = []
     return
 
-#Instructions Menu:
+#------ INSTRUCTIONS ------#:
+#Creates the instruction pages
 def drawInstruct(app, canvas):
-    if app.instructions:
-        page = app.instructPages[app.num]
-        canvas.create_image(app.width/2, app.height/2, 
+    page = app.instructPages[app.num]
+    canvas.create_image(app.width/2, app.height/2, 
                         image=ImageTk.PhotoImage(page))
-        canvas.create_text(app.width/2, app.height/8, text = 
-                            "use left and right arrow keys!",
-                            font = "Arial 15 bold")
-        return
+    canvas.create_text(app.width/2, app.height/8, text = 
+                        "Use left and right arrow keys!",
+                        font = "Cambria 15 bold")
+    return
 
 #-----DECK MENU------#
 #Changes current card and corresponding current image for app variables
@@ -406,7 +386,7 @@ def drawCard(app, canvas):
                         image=ImageTk.PhotoImage(card))
     cardStatus(app, canvas)
 
-#writes out status of card's placement in deck
+#Writes out status of card's placement in deck
 def cardStatus(app, canvas):
     #STATUS INFORMATION
     canvas.create_text(6*app.width/40, 20*app.height/32,
@@ -432,7 +412,6 @@ def cardStatus(app, canvas):
                         text = "Deck length: " + f'{len(deck)} / 40', 
                         font = "Arial 15 bold",
                         fill = "white")
-
 
 #Provides you with all the card's information
 def cardDescribe(app, canvas):
@@ -553,6 +532,7 @@ def getCellBounds(app, r, c):
     y1 = margin + yScale*(r+1)
     return (x0, y0, x1, y1)
 
+#Takes position and finds corresponding cell position
 def reverseGetCellBounds(app, x, y):
     for r in range(app.numRows):
         for c in range(app.numCols):
@@ -561,17 +541,10 @@ def reverseGetCellBounds(app, x, y):
                 return (r, c)
     return None
 
-#OPTIONS MENU
+#----OPTIONS MENU----#
+#Draws options menu 
 def drawOptions(app, canvas):
     width = (app.height - app.margin*4)/3
-    #AI Hard BUTTON
-    canvas.create_rectangle(app.width//2 - 180, app.height - app.margin,
-                            app.width//2 + 180, 
-                            app.height - (app.margin + width), 
-                            fill = app.color, outline = "black",
-                            width = 3)
-    canvas.create_text(app.width//2, app.height - app.margin - width*0.5, 
-                        text = "AI Hard", font = "Arial 25 bold")
     #AI Easy BUTTON
     canvas.create_rectangle(app.width//2 - 180, 
                             app.height - (app.margin*2 + width),
@@ -581,23 +554,11 @@ def drawOptions(app, canvas):
                             width = 3)
     canvas.create_text(app.width//2, app.height - app.margin*2 - width*1.5,
                             text = "AI Easy", font = "Arial 25 bold")
-    #TWO-Player BUTTON
-    canvas.create_rectangle(app.width//2 - 180, 
-                            app.height - (app.margin*3 + width*2),
-                            app.width//2 + 180, 
-                            app.height - (app.margin*3 + width*3), 
-                            fill = app.color, outline = "black",
-                            width = 3)
-    canvas.create_text(app.width//2, app.height - app.margin*3 - width*2.5,
-                        text = "Two-Player", font = "Arial 25 bold")
-    #Back button
-    canvas.create_rectangle(12*app.width/15, 11*app.height/12, app.width,
-                            app.height, fill = "snow", outline = "black",
-                            width = 3)
-    canvas.create_text(27*app.width/30, 23*app.height/24, text = "Go Back",
-                        fill = "blue2", font = "Arial 15 bold")
 
-#START GAME  
+#-------GAME--------#
+#Creates a 2D array where elements are lists containing a card object from
+#app.deck and its respective image object. The order of these elements
+#is randomized.
 def shuffle(app):
     answer = []
     tempDeck = copy.copy(app.deck)
@@ -608,6 +569,8 @@ def shuffle(app):
     return answer 
 
 #reference: playPig() from Audrey Chen's hw2 of 15112
+#Creates two shuffled decks and draws 4 list objects from the deck for each 
+#player.
 def startGame(app):
     app.deck1 = shuffle(app)
     app.deck2 = shuffle(app)
@@ -623,32 +586,190 @@ def startGame(app):
     startTurn(app)
     return
 
-## GRAPHICS FOR GAME
+#----Game mechanics for user's turn----#
+#Randomly increases the game level and draws a card for the current player
+def startTurn(app):
+    app.level += random.randint(0, 1)
+    currentDeck, hand = app.deck1, app.hand1
+    oppDeck, oppHand = app.deck2, app.hand2
+        # if bool(app.currentPlayer):
+        #     currentDeck, hand = app.deck2, app.hand2
+        #     oppDeck, oppHand = app.deck1, app.hand1
+    if app.aiTurn:
+        if len(oppHand) < 5 and len(oppDeck) > 0:
+            drawCard = oppDeck.pop()
+            oppHand += [drawCard]
+    elif len(hand) < 5 and len(currentDeck) > 0:
+        drawCard = currentDeck.pop()
+        hand += [drawCard]
+    return
+
+#Playing out the game mechanics after user has played a card
+def playGame(app):
+    #If game is over, cannot play
+    if len(app.hand1) == 0 or len(app.hand2) == 0:
+        return
+    result = playTurn(app, app.hand1, app.deck1, app.hand2, app.deck2)
+    #If card played was blocked, ends turn
+    if result == "Blocked!":
+        app.blocked = True
+        app.endTurn = True
+    #If damage was done, ends turn
+    elif result != None:
+        app.endTurn = True
+    #If illegal card was played, nothing happens, turn still in play
+    return
+
+#Uses the card selected by the user to carry out rest of user's turn
+def playTurn(app, hand, deck, oppHand, oppDeck):
+    #Legal card is played
+    if app.card.level <= app.level:
+        card = Card(app.card.name, app.card.level, app.card.attack, 
+                    copy.copy(app.card.type), app.card.blocks, app.card.img)
+        for i in range(len(hand)):
+            handItem = hand[i][0]
+            if handItem.getName() == card.getName():
+                hand.pop(i)
+                if app.currentPlayer == 0:
+                    app.hand1 = hand
+                else:
+                    app.hand2 = hand
+                break
+        #Calculate damage to AI 
+        damage = aiEasyDamage(app, card, oppHand, oppDeck)
+        app.yourDiscard = app.cardImage
+        app.card = []
+        app.cardImage = []
+        return damage
+    #Illegal card level
+    else:
+        app.card = []
+        app.cardImage = []
+        return None
+
+#Calculates AI's response based on card selected
+def aiEasyDamage(app, card, oppHand, oppDeck):
+    attack = card.attack
+    damage = 0
+    time.sleep(0.5)
+    #If attack is smaller than 6, AI is half as likely to block
+    if attack < 6:
+        n = random.randint(1, 2)
+        if n == 1:
+            damage = recurseDamage(app, card, attack, oppHand, oppDeck)
+            return damage
+    #Else, must always try to block
+    for oppCard in oppHand:
+        #Block is possible and is selected
+        if oppCard[0].blocks in card.type and len(card.type) == 1:
+            updateOppDiscard(app, oppCard[1])
+            oppHand.remove(oppCard)
+            return ("Blocked!")
+    #Block was not possible and damage is dealt
+    damage = recurseDamage(app, card, attack, oppHand, oppDeck)
+    return damage
+
+#If block is passed, damage will be dealt recursively upon the deck.
+def recurseDamage(app, card, attack, oppHand, oppDeck):
+    #Recursion is over if attack has reached its max (listed attack)
+    if attack == 0:
+        return 0
+    #Recursion is over if the opponent has lost
+    elif len(oppDeck) == 0 and len(oppHand) == 0:
+        time.sleep(0.5)
+        return 0
+    else:
+        if len(oppDeck) == 0:
+            discard = oppHand.pop()
+        else:
+            discard = oppDeck.pop()
+        if app.aiTurn:
+            app.yourDiscard = discard[1]
+        else:
+            updateOppDiscard(app, discard[1])
+        block = discard[0].blocks
+        if block in card.type:
+            card.type.remove(block)
+        #Recursion is over if lucky block occurs
+        if card.type == []:
+            app.luckyBlock = True
+            if app.aiTurn:
+                updateOppDiscard(app, app.aiCard[1])
+            return 1
+        else:
+            return 1 + recurseDamage(app, card, attack - 1, oppHand, oppDeck)
+
+#Updates which card image shall be on top of the opponent's discard pile
+def updateOppDiscard(app, image):
+    app.oppDiscard = image
+
+#-----Game mechanics for AI's turn-----#
+#Playing out the game mechanics for AI's turn
+def playAIGame(app):
+    #Do not play if game over
+    if len(app.hand1) == 0 or len(app.hand2) == 0:
+        return
+    result = playAIEasy(app, app.hand2, app.deck2)
+    if result != None:
+        app.aiCard = result
+        return
+    else:
+        app.passed = True
+        app.endTurn = True
+        return
+
+#Calculating the move AI should make (play which card or pass)
+def playAIEasy(app, hand, deck):
+    possibleCards = []
+    for card in hand:
+        if card[0].level <= app.level:
+            possibleCards += [card]
+    #No possible moves
+    if possibleCards == []:
+        return None
+    #To avoid playing the highest card
+    if len(possibleCards) > 1:
+        highestAttack = 0
+        highestCard = possibleCards[0]
+        for card in possibleCards:
+            if card[0].attack > highestAttack:
+                highestAttack = card[0].attack
+                highestCard = card
+        possibleCards.remove(highestCard)
+    card = possibleCards[random.randint(0, (len(possibleCards)-1))]
+    hand.remove(card)
+    return card
+
+#Determines if your block against an AI card is valid. If so, plays it
+def aiYourResponse(app):
+    card = app.aiCard[0]
+    copyCard = Card(card.name, card.level, card.attack, 
+                    copy.copy(card.type), card.blocks, card.img)
+    #Block is legal
+    if app.card.blocks in copyCard.type:
+        copyCard.type.remove(app.card.blocks)
+        app.yourDiscard = app.card
+    #Block is illegal, try again
+    else:
+        return None
+    #Block is successful
+    if copyCard.type == []:
+        updateOppDiscard(app, app.aiCard[1])
+        return("Blocked")
+    #Can block again
+    else:
+        return("Again")
+
+#-----GRAPHICS FOR GAME------#
+#Draws all the graphics for the gameplay
 def drawGameMat(app, canvas):
     hand, deck = app.hand1, app.deck1
     oppHand, oppDeck = app.hand2, app.deck2
-    if app.currentPlayer == 1:
-        hand, deck = app.hand2, app.deck2
-        oppHand, oppDeck = app.hand1, app.deck1
     cardHeight = 120
     image = app.deckImages[0]
     imageWidth, imageHeight = image.size
     scaleFactor = cardHeight/imageHeight
-    logo = app.scaleImage(app.logo, 1/7)
     cardWidth = imageWidth * scaleFactor
-    #AI's Turn
-    if app.aiTurn and app.endTurn == False and len(app.hand1) > 0\
-        and len(app.hand2) > 0:
-        canvas.create_text(app.width/2, 55 + cardHeight, text = "AI is playing",
-                            fill = "MediumPurple1",
-                            font = "Arial 20 bold")
-    #Pass button
-    canvas.create_rectangle(70 + cardWidth, app.height - 100 - cardHeight,
-                            140 + cardWidth, app.height - 140 - cardHeight,
-                            fill = "green", outline = "white", width = 2)
-    canvas.create_text(105 + cardWidth, app.height - 120 - cardHeight, 
-                        text = "Pass", fill = "white",
-                        font = "Arial 15")
     #Your Deck
     canvas.create_rectangle(40, app.height - 50, 40 + cardWidth, 
                             app.height - 50 - cardHeight,
@@ -658,7 +779,7 @@ def drawGameMat(app, canvas):
                         font = "Arial 25 bold")
     canvas.create_text(40 + cardWidth/2, app.height - 35, text = "Deck",
                         fill = "white", font = "Arial 15 bold")
-    #your discard
+    #Your discard
     canvas.create_rectangle(40, app.height - 90 - cardHeight, 40 + cardWidth, 
                             app.height - 90 - 2*cardHeight,
                             fill = "grey18", outline = "black", width = 3)
@@ -669,18 +790,7 @@ def drawGameMat(app, canvas):
         discard = app.scaleImage(app.yourDiscard, scaleFactor)
         canvas.create_image(40 + cardWidth/2, app.height - 90 - 1.5*cardHeight,
                             image = ImageTk.PhotoImage(discard))
-    #Player text
-    canvas.create_text(60 + cardWidth, 
-                        app.height - 60 - cardHeight, anchor ='sw',
-                        text = f'Player {app.currentPlayer + 1}',
-                        fill = "yellow",
-                        font = "Arial 20 bold")
-    if app.aiEasy:
-        canvas.create_text(app.width - 40 - cardWidth/2,
-                            70 + 2*cardHeight, text = "AI",
-                            fill = "white",
-                            font = "Arial 20 bold")
-    #Hand
+    #Your hand
     for i in range(len(hand)):
         canvas.create_rectangle(60 + 5*i + (i+1)*cardWidth, app.height - 50, 
                                 60 + 5*i + (i+2)*cardWidth, 
@@ -694,11 +804,18 @@ def drawGameMat(app, canvas):
                          (len(hand))*cardWidth)/2, 
                         app.height - 35, text = "Hand", fill = "white",
                         font = "Arial 15 bold")
-    if app.cardImage != [] and app.card == []:
-        drawBig(app, canvas)
-    if app.card != [] and app.cardImage != []:
-        pushCard(app, canvas)
-    #opponent deck
+    #Player text
+    canvas.create_text(60 + cardWidth, 
+                        app.height - 60 - cardHeight, anchor ='sw',
+                        text = f'Player {app.currentPlayer + 1}',
+                        fill = "yellow",
+                        font = "Arial 20 bold")
+    if app.aiEasy:
+        canvas.create_text(app.width - 40 - cardWidth/2,
+                            70 + 2*cardHeight, text = "AI",
+                            fill = "white",
+                            font = "Arial 20 bold")
+    #Opponent deck
     flipLogo = app.scaleImage(app.flipLogo, 1/7)
     canvas.create_rectangle(app.width - 40, 30, app.width - 40 - cardWidth, 
                             30 + cardHeight,
@@ -707,7 +824,17 @@ def drawGameMat(app, canvas):
                         30 + cardHeight/2,
                         text = f'{len(oppDeck)}', fill = "white",
                         font = "Arial 25 bold")
-    #opponent hand
+    #Opponent discard
+    canvas.create_rectangle(app.width - 40, 50 + cardHeight, 
+                            app.width - 40 - cardWidth, 
+                            50 + 2*cardHeight,
+                            fill = "grey18", outline = "black", width = 3)
+    if app.oppDiscard != []:
+        discard = app.scaleImage(app.oppDiscard, scaleFactor)
+        canvas.create_image(app.width - 40 - cardWidth/2, 
+                            50 + 1.5*cardHeight,
+                            image = ImageTk.PhotoImage(discard))
+    #Opponent hand
     for i in range(len(oppHand)):
         canvas.create_rectangle(app.width - 60 - 5*i - (i+1)*cardWidth, 
                                 30, 
@@ -718,26 +845,22 @@ def drawGameMat(app, canvas):
                             cardWidth/2, 
                             30 + cardHeight/2, 
                             image = ImageTk.PhotoImage(flipLogo))
-    #opponent discard
-    canvas.create_rectangle(app.width - 40, 50 + cardHeight, 
-                            app.width - 40 - cardWidth, 
-                            50 + 2*cardHeight,
-                            fill = "grey18", outline = "black", width = 3)
-    if app.oppDiscard != []:
-        discard = app.scaleImage(app.oppDiscard, scaleFactor)
-        canvas.create_image(app.width - 40 - cardWidth/2, 
-                            50 + 1.5*cardHeight,
-                            image = ImageTk.PhotoImage(discard))
+    #Pass button
+    canvas.create_rectangle(70 + cardWidth, app.height - 100 - cardHeight,
+                            140 + cardWidth, app.height - 140 - cardHeight,
+                            fill = "green", outline = "white", width = 2)
+    canvas.create_text(105 + cardWidth, app.height - 120 - cardHeight, 
+                        text = "Pass", fill = "white",
+                        font = "Arial 15")
     #Current Level
     canvas.create_oval(app.width - 120, app.height - 160, app.width - 40, 
-                        app.height - 80, fill = "yellow", outline = "black",
-                        width = 3)
-    canvas.create_text(app.width - 80, app.height - 120, 
-                        text = f'{app.level}',
-                        fill = "black", font = "Arial 25 bold")
-    canvas.create_text(app.width - 80, app.height - 180,
+                        app.height - 80, fill = "sea green", 
+                        outline = "white", width = 3)
+    canvas.create_text(app.width - 80, app.height - 120, text = f'{app.level}',
+                        fill = "white", font = "Arial 25 bold")
+    canvas.create_text(app.width - 80, app.height - 5*cardHeight/3,
                         text = "Level:", fill = "white",
-                        font = "Arial 25")
+                        font = "Arial 25 bold")
     #Quit Button
     canvas.create_rectangle(12*app.width/15, 11*app.height/12, app.width,
                             app.height, fill = "red", outline = "white",
@@ -748,7 +871,7 @@ def drawGameMat(app, canvas):
     if len(app.hand1) == 0 or len(app.hand2) == 0:
         winner = app.currentPlayer
         canvas.create_text(app.width/2, app.height/2,
-                            text = "GAME OVER", fill = "snow",
+                            text = "GAME OVER", fill = "white",
                             font = "Arial 35 bold")
         if app.aiEasy and len(app.hand1) == 0:
             canvas.create_text(app.width/2, app.height/2 + 60,
@@ -761,7 +884,20 @@ def drawGameMat(app, canvas):
                             fill = "gold",
                             font = "Arial 25")
         return
-    #Lucky Block/Passed
+    #Player's turn text
+    if app.aiTurn and app.endTurn == False:
+        canvas.create_text(app.width/2, 55 + cardHeight, text = "AI is playing",
+                            fill = "purple",
+                            font = "Arial 20 bold")
+    elif app.endTurn == False:
+        canvas.create_text(app.width/2, app.height/2, text = "Your turn",
+                            fill = "purple",
+                            font = "Arial 25 bold")
+    #If user mouses over hand, card will be drawn big in the top 
+    #left corner
+    if app.cardImage != []:
+        drawBig(app, canvas)
+    #Lucky Block/Blocked/Passed text
     if app.luckyBlock:
         canvas.create_text(app.width/2, app.height/2, text = "Lucky block!",
                             fill = "orange red",
@@ -774,237 +910,34 @@ def drawGameMat(app, canvas):
         canvas.create_text(app.width/2, app.height/2, text = "Blocked!",
                             fill = "red",
                             font = "Arial 30 bold")
+    #End of turn prompt to continue
     if app.endTurn:
         canvas.create_text(app.width/2, app.height/2 + 40,
                         text = "Next player's turn! Click anywhere",
                         fill = "white",
                         font = "Arial 15")
     #AI push card
-    if app.aiCard != []:
-        pushAICard(app, canvas)
+    if app.blocked:
+        return
+    elif app.aiCard != []:
+        pushCard(app, canvas)
     return
-#mouse over effect   
+
+#Mouse over effect, creates card image scaled up in top left corner  
 def drawBig(app, canvas):
     scaleFactor = 11/10
     image = app.scaleImage(app.cardImage, scaleFactor)
     canvas.create_image(150, 180, image = ImageTk.PhotoImage(image))
 
-#selecting card effect
+#Creates card image at the center
 def pushCard(app, canvas):
     imageCard = app.cardImage
     if app.aiTurn:
-        return
+        imageCard = app.aiCard[1]
     canvas.create_image(app.width/2, app.height/2, 
                         image = ImageTk.PhotoImage(imageCard))
 
-#displaying AI's chosen card
-def pushAICard(app, canvas):
-    imageCard = app.aiCard[1]
-    canvas.create_image(app.width/2, app.height/2, 
-                        image = ImageTk.PhotoImage(imageCard))
-
-def startTurn(app):
-    if len(app.hand1) > 0 and len(app.hand2) > 0:
-        #update decks and hands too
-        app.level += random.randint(0, 1)
-        currentDeck, hand = app.deck1, app.hand1
-        oppDeck, oppHand = app.deck2, app.hand2
-        if bool(app.currentPlayer):
-            currentDeck, hand = app.deck2, app.hand2
-            oppDeck, oppHand = app.deck1, app.hand1
-        if app.aiTurn:
-            if len(oppDeck) > 0 and len(oppHand) < 5:
-                drawCard = oppDeck.pop()
-                oppHand += [drawCard]
-            return
-        elif len(hand) < 5 and len(currentDeck) > 0:
-            drawCard = currentDeck.pop()
-            hand += [drawCard]
-    return
-
-def playGame(app):
-    if len(app.hand1) == 0 or len(app.hand2) == 0:
-        return
-    else: 
-        if bool(app.currentPlayer):
-            result = playTurn(app, app.hand2, app.deck2, app.hand1, app.deck1)
-        else:
-            result = playTurn(app, app.hand1, app.deck1, app.hand2, app.deck2)
-        if result == "Blocked!":
-            app.blocked = True
-            app.endTurn = True
-        elif result != None:
-            damage = result
-            print('Wow! You did ' + f'{damage} points of damage!')
-            app.endTurn = True
-    return
-
-def playTurn(app, hand, deck, oppHand, oppDeck):
-    if app.card.level <= app.level:
-        card = Card(app.card.name, app.card.level, app.card.attack, 
-                    copy.copy(app.card.type), app.card.blocks, app.card.img)
-        for i in range(len(hand)):
-            handItem = hand[i][0]
-            if handItem.getName() == card.getName():
-                hand.pop(i)
-                if app.currentPlayer == 0:
-                    app.hand1 = hand
-                else:
-                    app.hand2 = hand
-                break
-        if app.aiEasy:
-            damage = aiEasyDamage(app, card, oppHand, oppDeck)
-        else:
-            damage = calcDamage(app, card, oppHand, oppDeck)
-        app.yourDiscard = app.cardImage
-        app.card = []
-        app.cardImage = []
-        return damage
-    else:
-        app.card = []
-        app.cardImage = []
-        return None
-
-def printHand(app, hand):
-    answer = ""
-    for card in hand:
-        answer += "\t" + repr(card[0])
-    return answer
-
-#for two player, getting input from opposite player
-def calcDamage(app, card, oppHand, oppDeck):
-    opponent = (app.currentPlayer + 1) % 2
-    print(f'PLAYER {opponent + 1}\'s hand:\n', printHand(app, oppHand))
-    while True:
-        press = app.getUserInput(f'Player {opponent + 1}, press P to pass,' +\
-        'or press a number to block:')
-        damage = 0
-        if press == None:
-            print("Try again!")
-        elif press.isdigit() and int(press) <= len(oppHand):
-            block = oppHand[int(press)-1][0].blocks
-            if block in card.type:
-                card.type.remove(block)
-                discard = oppHand.pop(int(press)-1)
-                updateOppDiscard(app, discard[1])
-            else:
-                print("Illegal move")
-                continue
-            if card.type == []:
-                print("Blocked!")
-                return("Blocked!")
-            else:
-                print("Discard another card")
-                continue
-        elif press.isalpha() and press.lower() == "p":
-            attack = card.attack
-            damage = recurseDamage(app, card, attack, oppHand, oppDeck)
-            return damage
-        else:
-            print("Illegal move!")
-
-def updateOppDiscard(app, image):
-    app.oppDiscard = image
-
-#recursion
-def recurseDamage(app, card, attack, oppHand, oppDeck):
-    if attack == 0:
-        return 0
-    elif len(oppDeck) == 0 and len(oppHand) == 0:
-        return 0
-    else:
-        time.sleep(0.5)
-        if len(oppDeck) == 0:
-            discard = oppHand.pop()
-        else:
-            discard = oppDeck.pop()
-        print("Discarding... " + f'{discard[0].name}')
-        if app.aiTurn:
-            app.yourDiscard = discard[1]
-        else:
-            updateOppDiscard(app, discard[1])
-        block = discard[0].blocks
-        if block in card.type:
-            card.type.remove(block)
-        if card.type == []:
-            app.luckyBlock = True
-            if app.aiTurn:
-                updateOppDiscard(app, app.aiCard[1])
-            return 1
-        else:
-            return 1 + recurseDamage(app, card, attack - 1, oppHand, oppDeck)
-
-#AI easy function
-def aiEasyDamage(app, card, oppHand, oppDeck):
-    attack = card.attack
-    damage = 0
-    if attack < 7:
-        n = random.randint(1, 2)
-        if n == 1:
-            damage = recurseDamage(app, card, attack, oppHand, oppDeck)
-            return damage
-        #else try to block
-    for oppCard in oppHand:
-        if oppCard[0].blocks in card.type and len(card.type) == 1:
-            updateOppDiscard(app, oppCard[1])
-            oppHand.remove(oppCard)
-            return ("Blocked!")
-    damage = recurseDamage(app, card, attack, oppHand, oppDeck)
-    return damage
-
-def playAIGame(app):
-    if len(app.hand1) == 0 or len(app.hand2) == 0:
-        return
-    else:
-        if app.aiEasy:
-            result = playAIEasy(app, app.hand2, app.deck2)
-            if result != None:
-                app.aiCard = result
-                return
-            else:
-                app.passed = True
-                app.endTurn = True
-                return
-
-def playAIEasy(app, hand, deck):
-    possibleCards = []
-    for card in hand:
-        if card[0].level <= app.level:
-            possibleCards += [card]
-    if possibleCards == []:
-        return None
-    #to avoid playing the highest card
-    if len(possibleCards) > 1:
-        highestAttack = 0
-        highestCard = possibleCards[0]
-        for card in possibleCards:
-            if card[0].attack > highestAttack:
-                highestAttack = card[0].attack
-                highestCard = card
-        possibleCards.remove(highestCard)
-    card = possibleCards[random.randint(0, (len(possibleCards)-1))]
-    hand.remove(card)
-    return card
-
-def aiYourResponse(app):
-    card = app.aiCard[0]
-    copyCard = Card(card.name, card.level, card.attack, 
-                    copy.copy(card.type), card.blocks, card.img)
-    #block is legal
-    if app.card.blocks in copyCard.type:
-        copyCard.type.remove(app.card.blocks)
-        app.yourDiscard = app.card
-    #block is illegal, try again
-    else:
-        return None
-    #block is successful
-    if copyCard.type == []:
-        updateOppDiscard(app, app.aiCard[1])
-        return("Blocked")
-    #can block again
-    else:
-        return("Again")
-
+#Creates the app graphics interface
 def redrawAll(app, canvas):
     drawBoard(app, canvas)
     drawLogo(app, canvas)
@@ -1012,7 +945,8 @@ def redrawAll(app, canvas):
         startText(app, canvas)
     if app.startMenu:
         drawMenu(app, canvas)
-    drawInstruct(app, canvas)
+    if app.instructions:
+        drawInstruct(app, canvas)
     if app.deckMenu:
         drawCard(app, canvas)
     if app.myDeck or app.deckMenu:
